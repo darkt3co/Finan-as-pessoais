@@ -1,0 +1,1 @@
+Data cleaning of my personal finance logs since 2014 aiming to build a Dashboard of all my expenses, past and future.
