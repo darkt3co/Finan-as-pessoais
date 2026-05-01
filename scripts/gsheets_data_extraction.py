@@ -27,7 +27,7 @@ def gerar_id_unico(linha):
 
 def categorizar_despesas(despesas): # PENDENTE Criar o código para obter o caminho dentro do GitHub
     script_path = os.path.dirname(os.path.abspath(__file__))
-    mapping_path = os.path.join(script_path, 'cat_mapping.csv')
+    mapping_path = os.path.join(script_path, 'cat_mapping.CSV')
 
     # Armazenamos o dataframe
     mapping = pd.read_csv(mapping_path, sep=';', decimal='.', dtype=str)
