@@ -14,7 +14,11 @@ from pymongo.server_api import ServerApi
 
 def listar_abas():
     # Retorna uma lista com os títulos de todas as abas da planilha
-    return [aba.title for aba in planilha.worksheets(exclude_hidden=True)]
+    anos = []
+    for aba in planilha.worksheets(exclude_hidden=True):
+        anos.append(int(aba.title))
+    return anos
+    
 
 def acessar_planilha_gsheets():
     # Configurações para autenticação com o Google Sheets
