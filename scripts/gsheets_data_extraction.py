@@ -146,9 +146,9 @@ def extrair_2014_2015(ano):
 
     # Criamos a coluna Tipo a partir da coluna Código para diferenciar
     # receitas e despesas
-    despesas['Tipo'] = despesas.case_when([
-        despesas['Valor'] < 0, 'D',
-        despesas['Valor'] >= 0, 'R'
+    despesas['Tipo'] = despesas['Valor'].case_when([
+        (despesas['Valor'] < 0, 'D'),
+        (despesas['Valor'] >= 0, 'R')
     ])
 
     # Convertemos de volta para valor para eliminação do sinal
@@ -219,10 +219,10 @@ def extrair_2016_2018(ano):
 
         # Criamos a coluna Tipo a partir da coluna Código para diferenciar
     # receitas e despesas
-    despesas['Tipo'] = despesas.case_when([
-        despesas['Código'] == 'R', 'R',
-        (despesas['Código'] != 'R') & (despesas['Valor'] < 0), 'D',
-        (despesas['Código'] != 'R') & (despesas['Valor'] >= 0), 'RE',
+    despesas['Tipo'] = despesas['Código'].case_when([
+        (despesas['Código'] == 'R', 'R'),
+        ((despesas['Código'] != 'R') & (despesas['Valor'] < 0), 'D'),
+        ((despesas['Código'] != 'R') & (despesas['Valor'] >= 0), 'RE'),
     ])
     
     #Removemos a coluna de categoria pois não será mais necessária
@@ -295,12 +295,12 @@ def extrair_2019(ano):
     # Realizamos a limpeza da coluna descrição
     despesas = despesas[despesas['Descrição'] != '']
 
-    # Criamos a coluna de tipo para diferenciar receitas e despesas
-    despesas['Tipo'] = np.where(despesas['Código'] == 'R', 'R', 'D')
-
-    # Valores positivos com código de despesa 'D' são classificados como 'RE' (Reembolso)
-    despesas['Tipo'] = np.where((despesas['Tipo'] == 'D') & (despesas['Valor'] < 0), 'RE', despesas['Tipo'])
-
+    despesas['Tipo'] = despesas['Código'].case_when([
+        (despesas['Código'] == 'R', 'R'),
+        ((despesas['Código'] != 'R') & (despesas['Valor'] < 0), 'RE'),
+        ((despesas['Código'] != 'R') & (despesas['Valor'] >= 0), 'D')
+    ])
+    
     # Removemos a coluna de categoria pois não será mais necessária
     despesas = despesas.drop(columns=['Código'])
 
@@ -373,12 +373,12 @@ def extrair_2020(ano):
 
     # Criamos a coluna Tipo a partir da coluna Código para diferenciar
     # receitas e despesas
-    despesas['Tipo'] = despesas.case_when([
-        despesas['Código'] == 'R', 'R',
-        (despesas['Código'] == 'D') & (despesas['Valor'] < 0), 'RE',
-        (despesas['Código'] == 'D') & (despesas['Valor'] >= 0), 'D',
-        (despesas['Código'] == 'P') & (despesas['Valor'] >= 0), 'PSA',
-        (despesas['Código'] == 'P') & (despesas['Valor'] < 0), 'PDE',
+    despesas['Tipo'] = despesas['Código'].case_when([
+        (despesas['Código'] == 'R', 'R'),
+        ((despesas['Código'] == 'D') & (despesas['Valor'] < 0), 'RE'),
+        ((despesas['Código'] == 'D') & (despesas['Valor'] >= 0), 'D'),
+        ((despesas['Código'] == 'P') & (despesas['Valor'] >= 0), 'PSA'),
+        ((despesas['Código'] == 'P') & (despesas['Valor'] < 0), 'PDE'),
     ])
 
     # Removemos a coluna de categoria pois não será mais necessária
@@ -453,12 +453,12 @@ def extrair_2021_2025(ano):
 
     # Criamos a coluna Tipo a partir da coluna Código para diferenciar
     # receitas e despesas
-    despesas['Tipo'] = despesas.case_when([
-        despesas['Código'] == 'R', 'R',
-        (despesas['Código'] == 'D') & (despesas['Valor'] < 0), 'RE',
-        (despesas['Código'] == 'D') & (despesas['Valor'] >= 0), 'D',
-        (despesas['Código'] == 'P') & (despesas['Valor'] < 0), 'PSA',
-        (despesas['Código'] == 'P') & (despesas['Valor'] >= 0), 'PDE',
+    despesas['Tipo'] = despesas['Código'].case_when([
+        (despesas['Código'] == 'R', 'R'),
+        ((despesas['Código'] == 'D') & (despesas['Valor'] < 0), 'RE'),
+        ((despesas['Código'] == 'D') & (despesas['Valor'] >= 0), 'D'),
+        ((despesas['Código'] == 'P') & (despesas['Valor'] < 0), 'PSA'),
+        ((despesas['Código'] == 'P') & (despesas['Valor'] >= 0), 'PDE'),
     ])
 
     # Removemos a coluna de categoria pois não será mais necessária
@@ -528,11 +528,15 @@ def extrair_pos_2026(ano):
     # Realizamos a limpeza da coluna descrição
     despesas = despesas[despesas['Descrição'] != '']
 
-    # Criamos a coluna de tipo para diferenciar receitas e despesas
-    despesas['Tipo'] = np.where(despesas['Código'] == 'R', 'R', 'D')
-
-    # Valores positivos com código de despesa 'D' são classificados como 'RE' (Reembolso)
-    despesas['Tipo'] = np.where((despesas['Tipo'] == 'D') & (despesas['Valor'] < 0), 'RE', despesas['Tipo'])
+    # Criamos a coluna Tipo a partir da coluna Código para diferenciar
+    # receitas e despesas
+    despesas['Tipo'] = despesas['Código'].case_when([
+        (despesas['Código'] == 'R', 'R'),
+        ((despesas['Código'] == 'D') & (despesas['Valor'] < 0), 'RE'),
+        ((despesas['Código'] == 'D') & (despesas['Valor'] >= 0), 'D'),
+        ((despesas['Código'] == 'P') & (despesas['Valor'] < 0), 'PSA'),
+        ((despesas['Código'] == 'P') & (despesas['Valor'] >= 0), 'PDE'),
+    ])
 
     # Removemos a coluna de código pois não será mais necessária
     despesas = despesas.drop(columns=['Código'])
