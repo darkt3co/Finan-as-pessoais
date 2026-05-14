@@ -19,7 +19,6 @@ def listar_abas():
         anos.append(int(aba.title))
     return anos
     
-
 def acessar_planilha_gsheets():
     # Configurações para autenticação com o Google Sheets
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -151,7 +150,8 @@ def extrair_2014_2015(ano):
     # Criamos a coluna Tipo a partir da coluna Código para diferenciar
     # receitas e despesas
     despesas['Tipo'] = despesas['Valor'].case_when([
-        (despesas['Valor'] < 0, 'D'),
+        (
+            despesas['Valor'] < 0, 'D'),
         (despesas['Valor'] >= 0, 'R')
     ])
 
@@ -161,8 +161,20 @@ def extrair_2014_2015(ano):
     # Categorizamos as despesas
     categorizar_despesas(despesas)
 
+    # Removemos as linhas onde não temos categorias após a categorização
+    despesas = despesas[despesas['Categoria'] != '']
+    despesas = despesas[despesas['Categoria'].notna()]
+
     # Criamos o id único para cada linha
     despesas['_id'] = despesas.apply(gerar_id_unico, axis=1)
+
+    despesas = despesas.astype({
+    'Valor': 'float',
+    'Descrição': 'string',
+    'Data': 'datetime64[ns]',
+    'Tipo': 'category',
+    'Categoria': 'string',
+    })
 
     return despesas
 
@@ -224,9 +236,20 @@ def extrair_2016_2018(ano):
         # Criamos a coluna Tipo a partir da coluna Código para diferenciar
     # receitas e despesas
     despesas['Tipo'] = despesas['Código'].case_when([
-        (despesas['Código'] == 'R', 'R'),
-        ((despesas['Código'] != 'R') & (despesas['Valor'] < 0), 'D'),
-        ((despesas['Código'] != 'R') & (despesas['Valor'] >= 0), 'RE'),
+            (
+                ((despesas['Código'] == '0') & (despesas['Valor'] >= 0)),
+                'R'
+            ),
+
+            (
+                ((despesas['Código'] != 0) & (despesas['Valor'] > 0)),
+                'RE'
+            ),
+        
+            (
+                despesas['Valor'] < 0,
+                'D'
+            )
     ])
     
     #Removemos a coluna de categoria pois não será mais necessária
@@ -240,6 +263,14 @@ def extrair_2016_2018(ano):
 
     # Criamos o id único para cada linha
     despesas['_id'] = despesas.apply(gerar_id_unico, axis=1)
+
+    despesas = despesas.astype({
+    'Valor': 'float',
+    'Descrição': 'string',
+    'Data': 'datetime64[ns]',
+    'Tipo': 'category',
+    'Categoria': 'string',
+    })
 
     return despesas
 
@@ -300,9 +331,20 @@ def extrair_2019(ano):
     despesas = despesas[despesas['Descrição'] != '']
 
     despesas['Tipo'] = despesas['Código'].case_when([
-        (despesas['Código'] == 'R', 'R'),
-        ((despesas['Código'] != 'R') & (despesas['Valor'] < 0), 'RE'),
-        ((despesas['Código'] != 'R') & (despesas['Valor'] >= 0), 'D')
+        (
+            despesas['Código'] == 'R',
+            'R'
+        ),
+
+        (
+            (despesas['Código'] != 'R') & (despesas['Valor'] < 0),
+            'RE'
+        ),
+        
+        (
+            (despesas['Código'] != 'R') & (despesas['Valor'] >= 0),
+            'D'
+        )
     ])
     
     # Removemos a coluna de categoria pois não será mais necessária
@@ -316,6 +358,14 @@ def extrair_2019(ano):
 
     # Criamos o id único para cada linha
     despesas['_id'] = despesas.apply(gerar_id_unico, axis=1)
+
+    despesas = despesas.astype({
+    'Valor': 'float',
+    'Descrição': 'string',
+    'Data': 'datetime64[ns]',
+    'Tipo': 'category',
+    'Categoria': 'string',
+    })
 
     return despesas
 
@@ -378,11 +428,30 @@ def extrair_2020(ano):
     # Criamos a coluna Tipo a partir da coluna Código para diferenciar
     # receitas e despesas
     despesas['Tipo'] = despesas['Código'].case_when([
-        (despesas['Código'] == 'R', 'R'),
-        ((despesas['Código'] == 'D') & (despesas['Valor'] < 0), 'RE'),
-        ((despesas['Código'] == 'D') & (despesas['Valor'] >= 0), 'D'),
-        ((despesas['Código'] == 'P') & (despesas['Valor'] >= 0), 'PSA'),
-        ((despesas['Código'] == 'P') & (despesas['Valor'] < 0), 'PDE'),
+        (
+            despesas['Código'] == 'R',
+            'R'
+        ),
+        
+        (
+            (despesas['Código'] != 'R') & (despesas['Código'] != 'P') & (despesas['Valor'] < 0),
+            'RE'
+        ),
+
+        (
+            (despesas['Código'] != 'R') & (despesas['Código'] != 'P') & (despesas['Valor'] >= 0),
+            'D'
+        ),
+        
+        (
+            (despesas['Código'] == 'P') & (despesas['Valor'] >= 0),
+            'PSA'
+        ),
+        
+        (
+            (despesas['Código'] == 'P') & (despesas['Valor'] < 0),
+            'PDE'
+        ),
     ])
 
     # Removemos a coluna de categoria pois não será mais necessária
@@ -396,6 +465,14 @@ def extrair_2020(ano):
 
     # Criamos o id único para cada linha
     despesas['_id'] = despesas.apply(gerar_id_unico, axis=1)
+
+    despesas = despesas.astype({
+    'Valor': 'float',
+    'Descrição': 'string',
+    'Data': 'datetime64[ns]',
+    'Tipo': 'category',
+    'Categoria': 'string',
+    })
 
     return despesas
 
@@ -458,11 +535,30 @@ def extrair_2021_2025(ano):
     # Criamos a coluna Tipo a partir da coluna Código para diferenciar
     # receitas e despesas
     despesas['Tipo'] = despesas['Código'].case_when([
-        (despesas['Código'] == 'R', 'R'),
-        ((despesas['Código'] == 'D') & (despesas['Valor'] < 0), 'RE'),
-        ((despesas['Código'] == 'D') & (despesas['Valor'] >= 0), 'D'),
-        ((despesas['Código'] == 'P') & (despesas['Valor'] < 0), 'PSA'),
-        ((despesas['Código'] == 'P') & (despesas['Valor'] >= 0), 'PDE'),
+        (
+            despesas['Código'] == 'R',
+            'R'
+        ),
+
+        (
+            (despesas['Código'] != 'R') & (despesas['Código'] != 'P') & (despesas['Valor'] < 0),
+            'RE'
+        ),
+
+        (
+            (despesas['Código'] != 'R') & (despesas['Código'] != 'P') & (despesas['Valor'] >= 0),
+            'D'
+        ),
+
+        (
+            (despesas['Código'] == 'P') & (despesas['Valor'] < 0),
+            'PSA'
+        ),
+
+        (
+            (despesas['Código'] == 'P') & (despesas['Valor'] >= 0),
+            'PDE'
+        )
     ])
 
     # Removemos a coluna de categoria pois não será mais necessária
@@ -476,6 +572,14 @@ def extrair_2021_2025(ano):
 
     # Criamos o id único para cada linha
     despesas['_id'] = despesas.apply(gerar_id_unico, axis=1)
+
+    despesas = despesas.astype({
+    'Valor': 'float',
+    'Descrição': 'string',
+    'Data': 'datetime64[ns]',
+    'Tipo': 'category',
+    'Categoria': 'string',
+    })
 
     return despesas
 
@@ -535,11 +639,30 @@ def extrair_pos_2026(ano):
     # Criamos a coluna Tipo a partir da coluna Código para diferenciar
     # receitas e despesas
     despesas['Tipo'] = despesas['Código'].case_when([
-        (despesas['Código'] == 'R', 'R'),
-        ((despesas['Código'] == 'D') & (despesas['Valor'] < 0), 'RE'),
-        ((despesas['Código'] == 'D') & (despesas['Valor'] >= 0), 'D'),
-        ((despesas['Código'] == 'P') & (despesas['Valor'] < 0), 'PSA'),
-        ((despesas['Código'] == 'P') & (despesas['Valor'] >= 0), 'PDE'),
+        (
+            despesas['Código'] == 'R',
+            'R'
+        ),
+
+        (
+            (despesas['Código'] != 'R') & (despesas['Código'] != 'P') & (despesas['Valor'] < 0),
+            'RE'
+        ),
+        
+        (
+            (despesas['Código'] != 'R') & (despesas['Código'] != 'P') & (despesas['Valor'] >= 0),
+            'D'
+        ),
+        
+        (
+            (despesas['Código'] == 'P') & (despesas['Valor'] < 0),
+            'PSA'
+        ),
+        
+        (
+            (despesas['Código'] == 'P') & (despesas['Valor'] >= 0),
+            'PDE'
+        )
     ])
 
     # Removemos a coluna de código pois não será mais necessária
@@ -550,6 +673,14 @@ def extrair_pos_2026(ano):
 
     # Criamos o id único para cada linha
     despesas['_id'] = despesas.apply(gerar_id_unico, axis=1)
+
+    despesas = despesas.astype({
+    'Valor': 'float',
+    'Descrição': 'string',
+    'Data': 'datetime64[ns]',
+    'Tipo': 'category',
+    'Categoria': 'string',
+    })
 
     return despesas
 
